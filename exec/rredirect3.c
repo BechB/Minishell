@@ -1,0 +1,74 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   rredirect3.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: aldalmas <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/14 11:27:26 by bbousaad          #+#    #+#             */
+/*   Updated: 2024/07/14 23:53:18 by aldalmas         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "minishell.h"
+
+int	count_rredir(char *str, char rredir)
+{
+	int	i;
+	int	rredir_count;
+
+	i = 0;
+	rredir_count = 0;
+	while (str[i])
+	{
+		if (str[i] == rredir)
+			rredir_count++;
+		i++;
+	}
+	return (rredir_count);
+}
+
+void	rregroup_cmd_args(t_data *dta)
+{
+	int		i;
+	char	*temp;
+	char	*temp2;
+
+	i = 0;
+	temp = ft_strtrim(dta->rredi[1], " ");
+	temp2 = ft_strtrim(dta->rredi[0], " ");
+	while (temp[i] != ' ')
+		i++;
+	while (temp[i] == ' ')
+		i++;
+	if (dta->rredi[1])
+		free (dta->rredi[1]);
+	if (dta->rredi[0])
+		free (dta->rredi[0]);
+	dta->rredi[1] = ft_strdupp(temp + i);
+	if (temp)
+		free (temp);
+	temp2 = ft_strjoin_freee(temp2, " ");
+	dta->rredi[0] = ft_strjoin_freee(temp2, dta->rredi[1]);
+}
+
+void	handl_rredirect(t_data *dta, char **envp)
+{
+	if (count_rredir(dta->exec[0], '<'))
+	{
+		dta->str = ft_splitt(dta->rredi[1], ' ');
+		if (dta->str[1] != NULL)
+			rregroup_cmd_args(dta);
+		prompt_redirect4(dta, envp);
+		free_double_tab(dta->str);
+	}
+}
+
+void	exec_rredirect3(t_data *dta, char **envp)
+{
+	dta->cmd1 = ft_splitt(dta->rredi[0], ' ');
+	search_path(dta, envp);
+	execute_solo(dta->cmd1, dta->envp);
+	waitpid(-1, NULL, 0);
+	free_double_tab(dta->cmd1);
+}

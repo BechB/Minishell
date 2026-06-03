@@ -1,0 +1,80 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main_builtins.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: bbousaad <bbousaad@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/07/09 13:49:21 by bbousaad          #+#    #+#             */
+/*   Updated: 2024/07/16 17:19:57 by bbousaad         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "minishell.h"
+
+void	handl_exec(t_data *dta, char **envp)
+{
+	if (ft_strncmpp(dta->read[0], "pwd", 4) == 0)
+		print_pwd(dta);
+	else if (ft_strncmpp(dta->read[0], "env", 4) == 0)
+		print_env(dta, envp);
+	else if (ft_strncmpp(dta->read[0], "env", 4) != 0
+		&& ft_strncmpp(dta->read[0], "pwd", 4) != 0)
+		handl_exec2(dta, envp);
+}
+
+void	print_echo_basic(t_data *dta, int i, int len)
+{
+	printf("%s", dta->read[i]);
+	if (i != len - 1)
+		printf(" ");
+}
+
+void	handl_dollar(t_data *dta, int i, int len)
+{
+	while (i < len)
+	{
+		if (dta->read[i][0] == '$' && dta->read[i][1] != 0)
+		{
+			if (dta->read[i][1] == '?')
+			{
+				if (search_dollar(dta, i) == 0)
+					dollar_what(dta);
+				else
+					printf("%s ", dta->read[i]);
+				break ;
+			}
+			else if (search_dollar(dta, i) == 0)
+				take_var2(dta, i);
+			else
+				printf("%s ", dta->read[i]);
+		}
+		else
+			print_echo_basic(dta, i, len);
+		i++;
+	}
+	g_exit_status = 0;
+	printf("\n");
+}
+
+void	handl_exec2(t_data *dta, char **envp)
+{
+	if (!handl_echo_redir(dta, envp))
+		handl_echo_2(dta, envp);
+	else
+		handl_exec3(dta, envp);
+}
+
+void	handl_exec3(t_data *dta, char **envp)
+{
+	if (ft_strncmpp(dta->read[0], "cd", 3) == 0)
+		ft_cd(dta);
+	else if (ft_strncmpp(dta->read[0], "exit", 5) == 0)
+		ft_exit(dta);
+	else if (ft_strncmpp(dta->read[0], "export", 7) == 0)
+		ft_export(dta);
+	else if (ft_strncmpp(dta->read[0], "unset", 6) == 0)
+		ft_unset(dta, envp);
+	else
+		init_struct_redi(dta, envp);
+}
