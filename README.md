@@ -1,5 +1,5 @@
 How to use: 
-make / make re
+make or make re
 ./minishell
 
 What you build
